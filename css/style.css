@@ -695,8 +695,67 @@ transform:translateY(0);
 
 .menu-toggle {
   display: none;
+  font-size: 28px;
+  cursor: pointer;
+  color:white;
+}
+
+/* Modal */
+.modal {
+  display: none; /* escondido por padrão */
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.7); /* fundo escuro */
+}
+
+.modal-content {
+  background-color: #111827;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  color: white;
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: none;
+  background: #1e293b;
+  color: white;
+}
+
+.modal-content input::placeholder {
+  color: #9ca3af;
+}
+
+.modal-content button {
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* Botão fechar */
+.modal-content .close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
   font-size: 24px;
   cursor: pointer;
+  color: #3B82F6;
 }
 
 /* RESPONSIVIDADE DO SITE */
@@ -820,3 +879,5 @@ transform:translateY(0);
   }
 
 }
+
+

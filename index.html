@@ -236,7 +236,7 @@
         <div class="footer-contact">
           <h4>Contato</h4>
           <p>Email: suporte@pgcred.com</p>
-          <p>WhatsApp: (--) 99999-999</p>
+          <p>WhatsApp:  (85) 99848-2457</p> 
           <div class="footer-social">
             <a href="#"><i class="fa-brands fa-instagram"></i></a>
             <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
@@ -252,6 +252,46 @@
         <p>© 2026 PgCred - Todos os direitos reservados</p>
       </div>
     </div>
+    <div class="modal" id="loginModal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2> Login </h2>
+        <form>
+          <label for="email">Email:</label>
+          <input type="email" id="email" placeholder="Digite seu Email" required>
+
+          <label for="password">Senha:</label>
+          <input type="password" id="password" placeholder="Digite sua senha" required>
+
+          <button type="submit"> Entrar </button>
+        </form>
+        <p style="margin-top:15px; text-align:center;">
+          Não tem conta? <a href="#" id="openRegister"> Criar conta </a>
+        </p>
+      </div>
+    </div>
+    <div class="modal" id="registerModal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2> Criar conta </h2>
+        <form>
+          <label for="regName"> Nome: </label>
+          <input type="text" id="regName" placeholder="Seu nome" required>
+
+          <label for="regEmail"> Email: </label>
+          <input type="email" id="regEmail" placeholder="Digite seu Email" required>
+
+          <label for="regPassword"> Senha: </label>
+          <input type="password" id="regPassword" placeholder="Crie uma senha" required>
+
+          <button type="submit"> Criar conta </button>
+        </form>
+        <p style="margin-top:15px; text-align:center;">
+          Já tem conta? <a href="#" id="openLogin">Entrar</a>
+        </p>
+      </div>
+    </div>
+
     <script src="js/script.js"></script>
   </body>
 </html>

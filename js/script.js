@@ -92,3 +92,73 @@ const menu = document.getElementById("menu");
 toggle.addEventListener("click", () => {
   menu.classList.toggle("active");
 });
+
+
+// Seleciona botão "Acessar" e modal
+const loginBtn = document.querySelector(".btn-acessar");
+const loginModal = document.getElementById("loginModal");
+const closeModal = document.querySelector(".modal .close");
+
+// Abrir modal
+loginBtn.addEventListener("click", () => {
+  loginModal.style.display = "block";
+});
+
+// Fechar modal ao clicar no X
+closeModal.addEventListener("click", () => {
+  loginModal.style.display = "none";
+});
+
+// Fechar modal ao clicar fora do conteúdo
+window.addEventListener("click", (e) => {
+  if (e.target === loginModal) {
+    loginModal.style.display = "none";
+  }
+});
+
+// Espera o HTML carregar
+document.addEventListener("DOMContentLoaded", () => {
+  // MENU MOBILE
+  const menuToggle = document.getElementById("menu-toggle");
+  const navUl = document.querySelector("nav ul");
+
+  menuToggle.addEventListener("click", () => {
+    navUl.classList.toggle("show-menu");
+  });
+
+  // MODAIS LOGIN / REGISTRO
+  const loginBtn = document.querySelector(".btn-acessar");
+  const loginModal = document.getElementById("loginModal");
+  const registerModal = document.getElementById("registerModal");
+  const closeButtons = document.querySelectorAll(".modal .close");
+  const openRegister = document.getElementById("openRegister");
+  const openLogin = document.getElementById("openLogin");
+
+  loginBtn.addEventListener("click", () => {
+    loginModal.style.display = "block";
+  });
+
+  closeButtons.forEach(btn =>
+    btn.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      registerModal.style.display = "none";
+    })
+  );
+
+  window.addEventListener("click", (e) => {
+    if (e.target === loginModal) loginModal.style.display = "none";
+    if (e.target === registerModal) registerModal.style.display = "none";
+  });
+
+  openRegister.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginModal.style.display = "none";
+    registerModal.style.display = "block";
+  });
+
+  openLogin.addEventListener("click", (e) => {
+    e.preventDefault();
+    registerModal.style.display = "none";
+    loginModal.style.display = "block";
+  });
+});

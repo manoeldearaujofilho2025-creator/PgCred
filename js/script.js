@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (loginModal) loginModal.style.display = "none";
 
           // Redirecione para o painel após login (ajuste a rota conforme necessário)
-          window.location.href = "/dashboard.html";
+          window.location.href = "dashboard.html";
         } else {
           alert(dados.mensagem || "Email ou senha inválidos.");
         }

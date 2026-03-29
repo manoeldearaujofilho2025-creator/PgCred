@@ -247,34 +247,40 @@ app.delete('/clientes/:id', autenticar, async (req, res) => {
 // =====================
 
 // Cadastrar emprestimo
+// Cadastrar empréstimo
 app.post('/emprestimos', autenticar, async (req, res) => {
   const { cliente_id, valor, taxa_juros, tipo_juros, num_parcelas, data_emprestimo, observacoes } = req.body
 
   if (!cliente_id || !valor || !taxa_juros || !tipo_juros || !num_parcelas || !data_emprestimo) {
-    return res.status(400).json({ mensagem: "Preencha todos os campos obrigatorios" })
+    return res.status(400).json({ mensagem: "Preencha todos os campos obrigatórios" })
   }
 
-  let valor_total
+  const v = Number(valor)
+  const t = Number(taxa_juros) / 100
+  const n = Number(num_parcelas)
+
+  let valor_parcela, valor_total
+
   if (tipo_juros === 'simples') {
-    valor_total = Number(valor) * (1 + (Number(taxa_juros) / 100) * Number(num_parcelas))
-  } else {
-    valor_total = Number(valor) * Math.pow(1 + Number(taxa_juros) / 100, Number(num_parcelas))
+    valor_total  = v * (1 + t * n)
+    valor_parcela = valor_total / n
+  } else if (tipo_juros === 'price') {
+    // Fórmula Price (amortização)
+    valor_parcela = v * (t * Math.pow(1 + t, n)) / (Math.pow(1 + t, n) - 1)
+    valor_total   = valor_parcela * n
   }
-
-  const valor_parcela = valor_total / Number(num_parcelas)
 
   try {
     const resultado = await pool.query(
       'INSERT INTO emprestimos (usuario_id, cliente_id, valor, taxa_juros, tipo_juros, num_parcelas, valor_parcela, valor_total, data_emprestimo, observacoes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
       [req.usuario.id, cliente_id, valor, taxa_juros, tipo_juros, num_parcelas, valor_parcela.toFixed(2), valor_total.toFixed(2), data_emprestimo, observacoes || null]
     )
-    res.status(201).json({ mensagem: "Emprestimo registrado com sucesso!", emprestimo: resultado.rows[0] })
+    res.status(201).json({ mensagem: "Empréstimo registrado com sucesso!", emprestimo: resultado.rows[0] })
   } catch (erro) {
-    console.error('Erro ao cadastrar emprestimo:', erro.message)
+    console.error('Erro ao cadastrar empréstimo:', erro.message)
     res.status(500).json({ mensagem: "Erro interno no servidor" })
   }
 })
-
 // Listar emprestimos
 app.get('/emprestimos', autenticar, async (req, res) => {
   try {

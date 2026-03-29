@@ -82,7 +82,7 @@
       <select class="filter-select" id="filtroTipo" onchange="filtrar()">
         <option value="">Todos os tipos</option>
         <option value="simples">Juros Simples</option>
-        <option value="composto">Juros Compostos</option>
+        <option value="price">Juros Compostos Price</option>
       </select>
     </div>
 
@@ -143,7 +143,7 @@
         <label>Tipo de Juros *</label>
         <select id="tipoJuros" onchange="calcular()">
           <option value="simples">Juros Simples</option>
-          <option value="composto">Juros Compostos</option>
+          <option value="price">Juros Compostos Price (padrão bancário)</option>
         </select>
       </div>
       <div class="form-group">
@@ -275,7 +275,7 @@
         <td>R$ ${parseFloat(e.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
         <td>R$ ${parseFloat(e.valor_total).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
         <td>${e.num_parcelas}x R$ ${parseFloat(e.valor_parcela).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-        <td><span class="tipo-badge ${e.tipo_juros}">${e.tipo_juros === 'simples' ? 'Simples' : 'Composto'}</span></td>
+        <td><span class="tipo-badge ${e.tipo_juros}">${e.tipo_juros === 'simples' ? 'Simples' : 'Price'}</span></td>
         <td>${new Date(e.data_emprestimo).toLocaleDateString('pt-BR')}</td>
         <td><span class="status-badge ${e.status}">${e.status.charAt(0).toUpperCase() + e.status.slice(1)}</span></td>
         <td>
@@ -321,21 +321,24 @@
 
     if (!valor || !taxa || !parcelas) { preview.classList.remove('show'); return; }
 
-    let total;
+    const t = taxa / 100;
+    let total, parcela;
+
     if (tipo === 'simples') {
-      total = valor * (1 + (taxa / 100) * parcelas);
-    } else {
-      total = valor * Math.pow(1 + taxa / 100, parcelas);
+      total   = valor * (1 + t * parcelas);
+      parcela = total / parcelas;
+    } else if (tipo === 'price') {
+      // Fórmula Price — amortização real, dívida diminui mês a mês
+      parcela = valor * (t * Math.pow(1 + t, parcelas)) / (Math.pow(1 + t, parcelas) - 1);
+      total   = parcela * parcelas;
     }
 
-    const parcela = total / parcelas;
-
-    document.getElementById('prevValor').textContent   = 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    document.getElementById('prevTaxa').textContent    = taxa + '% ao mês';
-    document.getElementById('prevTipo').textContent    = tipo === 'simples' ? 'Juros Simples' : 'Juros Compostos';
+    document.getElementById('prevValor').textContent    = 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('prevTaxa').textContent     = taxa + '% ao mês';
+    document.getElementById('prevTipo').textContent     = tipo === 'simples' ? 'Juros Simples' : 'Juros Compostos Price';
     document.getElementById('prevParcelas').textContent = parcelas + 'x';
-    document.getElementById('prevParcela').textContent = 'R$ ' + parcela.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    document.getElementById('prevTotal').textContent   = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('prevParcela').textContent  = 'R$ ' + parcela.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('prevTotal').textContent    = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
     preview.classList.add('show');
   }

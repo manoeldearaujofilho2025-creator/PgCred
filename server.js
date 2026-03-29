@@ -493,7 +493,40 @@ app.delete('/perfil', autenticar, async (req, res) => {
   }
 })
 
+// =====================
+// ROTA DE RESUMO (DASHBOARD)
+// =====================
+app.get('/resumo', autenticar, async (req, res) => {
+  try {
+    const [emprestimos, clientes] = await Promise.all([
+      pool.query(
+        `SELECT 
+          COALESCE(SUM(valor), 0) as total_emprestado,
+          COALESCE(SUM(valor_total - valor), 0) as lucro_total,
+          COUNT(*) FILTER (WHERE status = 'atrasado') as total_inadimplentes,
+          COUNT(*) as total_emprestimos
+         FROM emprestimos WHERE usuario_id = $1`,
+        [req.usuario.id]
+      ),
+      pool.query(
+        'SELECT COUNT(*) as total_clientes FROM clientes WHERE usuario_id = $1',
+        [req.usuario.id]
+      )
+    ])
 
+    res.json({
+      total_emprestado:    emprestimos.rows[0].total_emprestado,
+      lucro_total:         emprestimos.rows[0].lucro_total,
+      total_inadimplentes: emprestimos.rows[0].total_inadimplentes,
+      total_emprestimos:   emprestimos.rows[0].total_emprestimos,
+      total_clientes:      clientes.rows[0].total_clientes
+    })
+
+  } catch (erro) {
+    console.error('Erro ao buscar resumo:', erro.message)
+    res.status(500).json({ mensagem: "Erro interno no servidor" })
+  }
+})
 
 // =====================
 // SERVIDOR

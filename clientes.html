@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PgCred — Clientes</title>
+  <link rel="icon" href="assets/PgCred-Icon.jpeg" type="image/png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-logo">Pg<span>Cred</span></div>
+    <div class="topbar-right">
+      <div class="topbar-user">
+        <div class="avatar" id="avatarInitial">?</div>
+        Olá, <strong id="nomeUsuario">Carregando...</strong>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sair
+      </button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <span class="sidebar-label">Menu</span>
+    <a class="nav-item" href="dashboard.html">
+      <i class="fa-solid fa-gauge"></i> Dashboard
+    </a>
+    <a class="nav-item active" href="clientes.html">
+      <i class="fa-solid fa-users"></i> Clientes
+    </a>
+    <a class="nav-item" href="emprestimos.html">
+      <i class="fa-solid fa-money-bill-trend-up"></i> Empréstimos
+    </a>
+    <a class="nav-item" href="relatorios.html">
+      <i class="fa-solid fa-chart-pie"></i> Relatórios
+    </a>
+    <span class="sidebar-label">Conta</span>
+    <a class="nav-item" href="configuracoes.html">
+      <i class="fa-solid fa-gear"></i> Configurações
+    </a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="page-header">
+      <div>
+        <h1>Clientes</h1>
+        <p>Gerencie todos os seus clientes</p>
+      </div>
+      <button class="btn-primary" onclick="abrirModal()">
+        <i class="fa-solid fa-plus"></i> Novo Cliente
+      </button>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-input">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="busca" placeholder="Buscar por nome, CPF ou email..." oninput="filtrarClientes()" />
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Lista de Clientes</h2>
+        <div class="total-badge">Total: <span id="totalClientes">0</span></div>
+      </div>
+      <div id="tabelaWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>CPF</th>
+              <th>Telefone</th>
+              <th>Email</th>
+              <th>Cadastrado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="corpoTabela"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL NOVO CLIENTE -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h2>Novo Cliente</h2>
+    <p>Preencha os dados do cliente abaixo</p>
+
+    <div class="form-group">
+      <label>Nome completo *</label>
+      <input type="text" id="clienteNome" placeholder="Ex: João da Silva" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>CPF *</label>
+        <input type="text" id="clienteCpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCpf(this)" />
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="text" id="clienteTelefone" placeholder="(00) 00000-0000" maxlength="15" oninput="mascaraTelefone(this)" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="clienteEmail" placeholder="email@exemplo.com" />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" id="btnSalvar" onclick="salvarCliente()">
+        <i class="fa-solid fa-check"></i> Salvar Cliente
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'index.html';
+
+  let todosClientes = [];
+
+  // =====================
+  // CARREGAR PERFIL
+  // =====================
+  async function carregarPerfil() {
+    try {
+      const res = await fetch('https://pgcred-production.up.railway.app/perfil', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) { logout(); return; }
+      const dados = await res.json();
+      const nome = dados.usuario.nome;
+      document.getElementById('nomeUsuario').textContent = nome;
+      document.getElementById('avatarInitial').textContent = nome.charAt(0).toUpperCase();
+    } catch (e) { console.error(e); }
+  }
+
+  // =====================
+  // CARREGAR CLIENTES
+  // =====================
+  async function carregarClientes() {
+    try {
+      const res = await fetch('https://pgcred-production.up.railway.app/clientes', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const dados = await res.json();
+      todosClientes = dados.clientes || [];
+      renderizarTabela(todosClientes);
+    } catch (e) {
+      console.error('Erro ao carregar clientes:', e);
+    }
+  }
+
+  // =====================
+  // RENDERIZAR TABELA
+  // =====================
+  function renderizarTabela(clientes) {
+    const corpo = document.getElementById('corpoTabela');
+    document.getElementById('totalClientes').textContent = clientes.length;
+
+    if (clientes.length === 0) {
+      corpo.innerHTML = `
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <i class="fa-solid fa-users"></i>
+            <p>Nenhum cliente cadastrado ainda.</p>
+            <button class="btn-primary" onclick="abrirModal()" style="margin:0 auto">
+              <i class="fa-solid fa-plus"></i> Cadastrar primeiro cliente
+            </button>
+          </div>
+        </td></tr>`;
+      return;
+    }
+
+    corpo.innerHTML = clientes.map(c => `
+      <tr>
+        <td>
+          <div class="client-name">
+            <div class="client-avatar">${c.nome.charAt(0).toUpperCase()}</div>
+            <strong>${c.nome}</strong>
+          </div>
+        </td>
+        <td>${c.cpf}</td>
+        <td>${c.telefone || '—'}</td>
+        <td>${c.email || '—'}</td>
+        <td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td>
+        <td>
+          <button class="btn-delete" onclick="deletarCliente(${c.id})">
+            <i class="fa-solid fa-trash"></i> Remover
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // =====================
+  // FILTRO DE BUSCA
+  // =====================
+  function filtrarClientes() {
+    const busca = document.getElementById('busca').value.toLowerCase();
+    const filtrados = todosClientes.filter(c =>
+      c.nome.toLowerCase().includes(busca) ||
+      c.cpf.includes(busca) ||
+      (c.email && c.email.toLowerCase().includes(busca))
+    );
+    renderizarTabela(filtrados);
+  }
+
+  // =====================
+  // MODAL
+  // =====================
+  function abrirModal() {
+    document.getElementById('modalOverlay').classList.add('open');
+    document.getElementById('clienteNome').focus();
+  }
+
+  function fecharModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.getElementById('clienteNome').value = '';
+    document.getElementById('clienteCpf').value = '';
+    document.getElementById('clienteTelefone').value = '';
+    document.getElementById('clienteEmail').value = '';
+  }
+
+  // Fecha modal clicando fora
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalOverlay')) fecharModal();
+  });
+
+  // =====================
+  // SALVAR CLIENTE
+  // =====================
+  async function salvarCliente() {
+    const nome     = document.getElementById('clienteNome').value.trim();
+    const cpf      = document.getElementById('clienteCpf').value.trim();
+    const telefone = document.getElementById('clienteTelefone').value.trim();
+    const email    = document.getElementById('clienteEmail').value.trim();
+
+    if (!nome || !cpf) {
+      alert('Nome e CPF são obrigatórios.');
+      return;
+    }
+
+    const btn = document.getElementById('btnSalvar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+    try {
+      const res = await fetch('https://pgcred-production.up.railway.app/clientes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ nome, cpf, telefone, email })
+      });
+
+      const dados = await res.json();
+
+      if (res.ok) {
+        fecharModal();
+        carregarClientes();
+      } else {
+        alert(dados.mensagem || 'Erro ao cadastrar cliente.');
+      }
+    } catch (e) {
+      alert('Erro ao conectar com o servidor.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Cliente';
+    }
+  }
+
+  // =====================
+  // DELETAR CLIENTE
+  // =====================
+  async function deletarCliente(id) {
+    if (!confirm('Tem certeza que deseja remover este cliente?')) return;
+
+    try {
+      await fetch(`https://pgcred-production.up.railway.app/clientes/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      carregarClientes();
+    } catch (e) {
+      alert('Erro ao remover cliente.');
+    }
+  }
+
+  // =====================
+  // MÁSCARAS
+  // =====================
+  function mascaraCpf(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    input.value = v;
+  }
+
+  function mascaraTelefone(input) {
+    let v = input.value.replace(/\D/g, '').substring(0, 11);
+    v = v.replace(/(\d{2})(\d)/, '($1) $2');
+    v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    input.value = v;
+  }
+
+  // =====================
+  // LOGOUT
+  // =====================
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuarioEmail');
+    window.location.href = 'index.html';
+  }
+
+  // INIT
+  carregarPerfil();
+  carregarClientes();
+</script>
+
+</body>
+</html>

@@ -559,6 +559,45 @@ app.get('/resumo', autenticar, async (req, res) => {
   }
 })
 
+// Editar empréstimo
+app.put('/emprestimos/:id', autenticar, async (req, res) => {
+  const { id } = req.params
+  const { cliente_id, valor, taxa_juros, tipo_juros, num_parcelas, data_emprestimo, observacoes } = req.body
+
+  if (!cliente_id || !valor || !taxa_juros || !tipo_juros || !num_parcelas || !data_emprestimo) {
+    return res.status(400).json({ mensagem: "Preencha todos os campos obrigatórios" })
+  }
+
+  const v = Number(valor)
+  const t = Number(taxa_juros) / 100
+  const n = Number(num_parcelas)
+
+  let valor_parcela, valor_total
+
+  if (tipo_juros === 'simples') {
+    valor_total   = v * (1 + t * n)
+    valor_parcela = valor_total / n
+  } else if (tipo_juros === 'price') {
+    valor_parcela = v * (t * Math.pow(1 + t, n)) / (Math.pow(1 + t, n) - 1)
+    valor_total   = valor_parcela * n
+  }
+
+  try {
+    const resultado = await pool.query(
+      `UPDATE emprestimos SET cliente_id=$1, valor=$2, taxa_juros=$3, tipo_juros=$4,
+       num_parcelas=$5, valor_parcela=$6, valor_total=$7, data_emprestimo=$8, observacoes=$9
+       WHERE id=$10 AND usuario_id=$11 RETURNING *`,
+      [cliente_id, valor, taxa_juros, tipo_juros, num_parcelas,
+       valor_parcela.toFixed(2), valor_total.toFixed(2),
+       data_emprestimo, observacoes || null, id, req.usuario.id]
+    )
+    res.json({ mensagem: "Empréstimo atualizado com sucesso!", emprestimo: resultado.rows[0] })
+  } catch (erro) {
+    console.error('Erro ao editar empréstimo:', erro.message)
+    res.status(500).json({ mensagem: "Erro interno no servidor" })
+  }
+})
+
 // =====================
 // SERVIDOR
 // =====================

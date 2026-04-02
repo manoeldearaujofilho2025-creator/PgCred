@@ -7,9 +7,98 @@
   <link rel="icon" href="assets/PgCred-Icon.jpeg" type="image/png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
+  <style>
+    .btn-edit {
+      background: transparent;
+      border: 1px solid #1e293b;
+      color: #9ca3af;
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: normal;
+      box-shadow: none;
+    }
+    .btn-edit:hover { border-color: #3B82F6; color: #3B82F6; transform: none; box-shadow: none; }
+    .btn-edit::after { display: none; }
+
+    .toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.875rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 999; min-width: 260px; color: white;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+      z-index: 300; align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box {
+      background: #111827; border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 16px; padding: 32px; width: 100%; max-width: 380px;
+      text-align: center; animation: fadeUp 0.3s ease both;
+    }
+    .confirm-box .danger-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(239,68,68,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: #ef4444; margin: 0 auto 16px;
+    }
+    .confirm-box h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .confirm-box p  { color: #9ca3af; font-size: 0.85rem; margin-bottom: 24px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .btn-confirm-cancel {
+      flex: 1; background: transparent; border: 1px solid #1e293b;
+      color: #9ca3af; padding: 10px; border-radius: 10px;
+      font-family: Arial; font-size: 0.875rem; cursor: pointer;
+      transition: 0.3s; font-weight: normal; box-shadow: none;
+    }
+    .btn-confirm-cancel:hover { border-color: white; color: white; transform: none; box-shadow: none; }
+    .btn-confirm-cancel::after { display: none; }
+    .btn-confirm-delete {
+      flex: 1; background: #ef4444; border: none; color: white;
+      padding: 10px; border-radius: 10px; font-family: Arial;
+      font-size: 0.875rem; font-weight: bold; cursor: pointer; transition: 0.3s;
+    }
+    .btn-confirm-delete:hover { background: #dc2626; transform: none; box-shadow: 0 0 15px rgba(239,68,68,0.3); }
+    .btn-confirm-delete::after { display: none; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
 
 <body>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✔</span>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- MODAL CONFIRMAR EXCLUSÃO -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="danger-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3>Remover empréstimo?</h3>
+    <p>Esta ação é irreversível e não poderá ser desfeita.</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm-cancel" onclick="fecharConfirm()">Cancelar</button>
+      <button class="btn-confirm-delete" id="btnConfirmDelete">Remover</button>
+    </div>
+  </div>
+</div>
 
 <div class="layout">
 
@@ -114,11 +203,13 @@
   </main>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL NOVO / EDITAR -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <h2>Novo Empréstimo</h2>
-    <p>Preencha os dados para registrar o empréstimo</p>
+    <h2 id="modalTitulo">Novo Empréstimo</h2>
+    <p id="modalSubtitulo">Preencha os dados para registrar o empréstimo</p>
+
+    <input type="hidden" id="emprestimoId" />
 
     <div class="form-group">
       <label>Cliente *</label>
@@ -157,7 +248,6 @@
       <input type="number" id="numParcelas" placeholder="Ex: 12" min="1" oninput="calcular()" />
     </div>
 
-    <!-- PREVIEW DO CÁLCULO -->
     <div class="calc-preview" id="calcPreview">
       <h4><i class="fa-solid fa-calculator"></i> Simulação</h4>
       <div class="calc-row"><span>Valor emprestado:</span><span id="prevValor">—</span></div>
@@ -186,14 +276,30 @@
   const token = localStorage.getItem('token');
   if (!token) window.location.href = 'index.html';
 
+  const API = 'https://pgcred-production.up.railway.app';
   let todosEmprestimos = [];
+  let emprestimoParaDeletar = null;
+
+  // =====================
+  // TOAST
+  // =====================
+  function showToast(msg, tipo = 'success') {
+    const toast = document.getElementById('toast');
+    const cor = tipo === 'success' ? '#3B82F6' : '#ef4444';
+    document.getElementById('toastIcon').textContent = tipo === 'success' ? '✔' : '✖';
+    document.getElementById('toastIcon').style.color = cor;
+    document.getElementById('toastMsg').textContent = msg;
+    toast.style.borderColor = tipo === 'success' ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
 
   // =====================
   // PERFIL
   // =====================
   async function carregarPerfil() {
     try {
-      const res = await fetch('https://pgcred-production.up.railway.app/perfil', { headers: { 'Authorization': 'Bearer ' + token } });
+      const res = await fetch(`${API}/perfil`, { headers: { 'Authorization': 'Bearer ' + token } });
       if (!res.ok) { logout(); return; }
       const dados = await res.json();
       const nome = dados.usuario.nome;
@@ -205,14 +311,14 @@
   // =====================
   // CARREGAR CLIENTES NO SELECT
   // =====================
-  async function carregarClientes() {
+  async function carregarClientes(selectedId = null) {
     try {
-      const res = await fetch('https://pgcred-production.up.railway.app/clientes', { headers: { 'Authorization': 'Bearer ' + token } });
+      const res = await fetch(`${API}/clientes`, { headers: { 'Authorization': 'Bearer ' + token } });
       const dados = await res.json();
       const select = document.getElementById('clienteId');
       select.innerHTML = '<option value="">Selecione um cliente</option>';
       dados.clientes.forEach(c => {
-        select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+        select.innerHTML += `<option value="${c.id}" ${selectedId == c.id ? 'selected' : ''}>${c.nome}</option>`;
       });
     } catch(e) { console.error(e); }
   }
@@ -222,7 +328,7 @@
   // =====================
   async function carregarEmprestimos() {
     try {
-      const res = await fetch('https://pgcred-production.up.railway.app/emprestimos', { headers: { 'Authorization': 'Bearer ' + token } });
+      const res = await fetch(`${API}/emprestimos`, { headers: { 'Authorization': 'Bearer ' + token } });
       const dados = await res.json();
       todosEmprestimos = dados.emprestimos || [];
       atualizarResumo(todosEmprestimos);
@@ -286,7 +392,12 @@
               <option value="pago">Pago</option>
               <option value="atrasado">Atrasado</option>
             </select>
-            <button class="btn-delete" onclick="deletar(${e.id})"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn-edit" onclick="abrirEdicao(${e.id})">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn-delete" onclick="confirmarDelete(${e.id})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
         </td>
       </tr>
@@ -328,7 +439,6 @@
       total   = valor * (1 + t * parcelas);
       parcela = total / parcelas;
     } else if (tipo === 'price') {
-      // Fórmula Price — amortização real, dívida diminui mês a mês
       parcela = valor * (t * Math.pow(1 + t, parcelas)) / (Math.pow(1 + t, parcelas) - 1);
       total   = parcela * parcelas;
     }
@@ -344,21 +454,47 @@
   }
 
   // =====================
-  // MODAL
+  // MODAL NOVO
   // =====================
   function abrirModal() {
+    document.getElementById('emprestimoId').value   = '';
+    document.getElementById('valor').value          = '';
+    document.getElementById('taxaJuros').value      = '';
+    document.getElementById('numParcelas').value    = '';
+    document.getElementById('observacoes').value    = '';
     document.getElementById('dataEmprestimo').value = new Date().toISOString().split('T')[0];
+    document.getElementById('calcPreview').classList.remove('show');
+    document.getElementById('modalTitulo').textContent    = 'Novo Empréstimo';
+    document.getElementById('modalSubtitulo').textContent = 'Preencha os dados para registrar o empréstimo';
+    document.getElementById('btnSalvar').innerHTML = '<i class="fa-solid fa-check"></i> Registrar';
     document.getElementById('modalOverlay').classList.add('open');
     carregarClientes();
   }
 
+  // =====================
+  // MODAL EDITAR
+  // =====================
+  function abrirEdicao(id) {
+    const e = todosEmprestimos.find(e => e.id === id);
+    if (!e) return;
+
+    document.getElementById('emprestimoId').value   = e.id;
+    document.getElementById('valor').value          = e.valor;
+    document.getElementById('taxaJuros').value      = e.taxa_juros;
+    document.getElementById('numParcelas').value    = e.num_parcelas;
+    document.getElementById('observacoes').value    = e.observacoes || '';
+    document.getElementById('dataEmprestimo').value = e.data_emprestimo.split('T')[0];
+    document.getElementById('tipoJuros').value      = e.tipo_juros;
+    document.getElementById('modalTitulo').textContent    = 'Editar Empréstimo';
+    document.getElementById('modalSubtitulo').textContent = 'Atualize os dados do empréstimo';
+    document.getElementById('btnSalvar').innerHTML = '<i class="fa-solid fa-pen"></i> Salvar Alterações';
+    document.getElementById('modalOverlay').classList.add('open');
+    carregarClientes(e.cliente_id);
+    calcular();
+  }
+
   function fecharModal() {
     document.getElementById('modalOverlay').classList.remove('open');
-    document.getElementById('clienteId').value    = '';
-    document.getElementById('valor').value        = '';
-    document.getElementById('taxaJuros').value    = '';
-    document.getElementById('numParcelas').value  = '';
-    document.getElementById('observacoes').value  = '';
     document.getElementById('calcPreview').classList.remove('show');
   }
 
@@ -367,19 +503,20 @@
   });
 
   // =====================
-  // SALVAR
+  // SALVAR (CRIAR OU EDITAR)
   // =====================
   async function salvar() {
-    const cliente_id      = document.getElementById('clienteId').value;
-    const valor           = document.getElementById('valor').value;
-    const taxa_juros      = document.getElementById('taxaJuros').value;
-    const tipo_juros      = document.getElementById('tipoJuros').value;
-    const num_parcelas    = document.getElementById('numParcelas').value;
+    const id           = document.getElementById('emprestimoId').value;
+    const cliente_id   = document.getElementById('clienteId').value;
+    const valor        = document.getElementById('valor').value;
+    const taxa_juros   = document.getElementById('taxaJuros').value;
+    const tipo_juros   = document.getElementById('tipoJuros').value;
+    const num_parcelas = document.getElementById('numParcelas').value;
     const data_emprestimo = document.getElementById('dataEmprestimo').value;
-    const observacoes     = document.getElementById('observacoes').value;
+    const observacoes  = document.getElementById('observacoes').value;
 
     if (!cliente_id || !valor || !taxa_juros || !num_parcelas || !data_emprestimo) {
-      alert('Preencha todos os campos obrigatórios.');
+      showToast('Preencha todos os campos obrigatórios.', 'error');
       return;
     }
 
@@ -388,8 +525,11 @@
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
 
     try {
-      const res = await fetch('https://pgcred-production.up.railway.app/emprestimos', {
-        method: 'POST',
+      const url    = id ? `${API}/emprestimos/${id}` : `${API}/emprestimos`;
+      const method = id ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ cliente_id, valor, taxa_juros, tipo_juros, num_parcelas, data_emprestimo, observacoes })
       });
@@ -398,12 +538,13 @@
 
       if (res.ok) {
         fecharModal();
+        showToast(id ? 'Empréstimo atualizado com sucesso!' : 'Empréstimo registrado com sucesso!');
         carregarEmprestimos();
       } else {
-        alert(dados.mensagem || 'Erro ao registrar empréstimo.');
+        showToast(dados.mensagem || 'Erro ao salvar empréstimo.', 'error');
       }
     } catch(e) {
-      alert('Erro ao conectar com o servidor.');
+      showToast('Erro ao conectar com o servidor.', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-check"></i> Registrar';
@@ -416,28 +557,41 @@
   async function atualizarStatus(id, status) {
     if (!status) return;
     try {
-      await fetch(`https://pgcred-production.up.railway.app/emprestimos/${id}/status`, {
+      await fetch(`${API}/emprestimos/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ status })
       });
+      showToast('Status atualizado!');
       carregarEmprestimos();
-    } catch(e) { alert('Erro ao atualizar status.'); }
+    } catch(e) { showToast('Erro ao atualizar status.', 'error'); }
   }
 
   // =====================
-  // DELETAR
+  // CONFIRMAR EXCLUSÃO
   // =====================
-  async function deletar(id) {
-    if (!confirm('Tem certeza que deseja remover este empréstimo?')) return;
+  function confirmarDelete(id) {
+    emprestimoParaDeletar = id;
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+
+  function fecharConfirm() {
+    emprestimoParaDeletar = null;
+    document.getElementById('confirmOverlay').classList.remove('open');
+  }
+
+  document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+    if (!emprestimoParaDeletar) return;
     try {
-      await fetch(`https://pgcred-production.up.railway.app/emprestimos/${id}`, {
+      await fetch(`${API}/emprestimos/${emprestimoParaDeletar}`, {
         method: 'DELETE',
         headers: { 'Authorization': 'Bearer ' + token }
       });
+      fecharConfirm();
+      showToast('Empréstimo removido com sucesso!');
       carregarEmprestimos();
-    } catch(e) { alert('Erro ao remover empréstimo.'); }
-  }
+    } catch(e) { showToast('Erro ao remover empréstimo.', 'error'); }
+  });
 
   // =====================
   // LOGOUT

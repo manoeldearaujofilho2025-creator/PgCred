@@ -242,6 +242,37 @@ app.delete('/clientes/:id', autenticar, async (req, res) => {
 })
 
 
+// Editar cliente
+app.put('/clientes/:id', autenticar, async (req, res) => {
+  const { id } = req.params
+  const { nome, email, telefone, cpf } = req.body
+
+  if (!nome || !cpf) {
+    return res.status(400).json({ mensagem: "Nome e CPF são obrigatórios" })
+  }
+
+  try {
+    const cpfExistente = await pool.query(
+      'SELECT id FROM clientes WHERE cpf = $1 AND usuario_id = $2 AND id != $3',
+      [cpf, req.usuario.id, id]
+    )
+
+    if (cpfExistente.rows.length > 0) {
+      return res.status(400).json({ mensagem: "Este CPF já está cadastrado em outro cliente" })
+    }
+
+    const resultado = await pool.query(
+      'UPDATE clientes SET nome = $1, email = $2, telefone = $3, cpf = $4 WHERE id = $5 AND usuario_id = $6 RETURNING *',
+      [nome, email, telefone, cpf, id, req.usuario.id]
+    )
+
+    res.json({ mensagem: "Cliente atualizado com sucesso!", cliente: resultado.rows[0] })
+  } catch (erro) {
+    console.error('Erro ao editar cliente:', erro.message)
+    res.status(500).json({ mensagem: "Erro interno no servidor" })
+  }
+})
+
 // =====================
 // ROTAS DE EMPRESTIMOS
 // =====================

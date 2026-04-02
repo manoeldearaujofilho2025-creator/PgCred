@@ -1,6 +1,58 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   // =====================
+  // TOAST
+  // =====================
+  function showToast(msg, tipo = 'success') {
+    let toast = document.getElementById('toast-global');
+
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast-global';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        background: #111827;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.875rem;
+        font-family: Arial, Helvetica, sans-serif;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 9999;
+        min-width: 260px;
+        color: white;
+      `;
+      document.body.appendChild(toast);
+    }
+
+    const cor = tipo === 'success' ? '#3B82F6' : '#ef4444';
+    const icone = tipo === 'success' ? '✔' : '✖';
+
+    toast.style.borderColor = tipo === 'success' ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)';
+    toast.innerHTML = `
+      <span style="color:${cor}; font-size:1rem;">${icone}</span>
+      <span>${msg}</span>
+    `;
+
+    toast.style.transform = 'translateY(0)';
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+      toast.style.transform = 'translateY(80px)';
+      toast.style.opacity = '0';
+    }, 3500);
+  }
+
+
+  // =====================
   // BOTÃO COMECAR
   // =====================
   const botao = document.getElementById('btn-comecar');
@@ -123,14 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const openRegister = document.getElementById("openRegister");
   const openLogin = document.getElementById("openLogin");
 
-  // Abrir modal de login
   if (loginBtn && loginModal) {
     loginBtn.addEventListener("click", () => {
       loginModal.style.display = "block";
     });
   }
 
-  // Fechar modais ao clicar no X
   closeButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       if (loginModal) loginModal.style.display = "none";
@@ -138,13 +188,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Fechar modais ao clicar fora
   window.addEventListener("click", (e) => {
     if (loginModal && e.target === loginModal) loginModal.style.display = "none";
     if (registerModal && e.target === registerModal) registerModal.style.display = "none";
   });
 
-  // Alternar entre login e registro
   if (openRegister) {
     openRegister.addEventListener("click", (e) => {
       e.preventDefault();
@@ -172,13 +220,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("email").value.trim();
       const senha = document.getElementById("senha").value.trim();
 
-      // Validação básica no frontend
       if (!email || !senha) {
-        alert("Preencha todos os campos.");
+        showToast("Preencha todos os campos.", "error");
         return;
       }
 
-      // Feedback visual no botão
+      if (senha.length < 6) {
+        showToast("A senha deve ter pelo menos 6 caracteres.", "error");
+        return;
+      }
+
       btnLogin.innerText = "Entrando...";
       btnLogin.disabled = true;
 
@@ -192,24 +243,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const dados = await resposta.json();
 
         if (resposta.ok) {
-          // Salva o token no localStorage para usar nas próximas requisições
           localStorage.setItem("token", dados.token);
           localStorage.setItem("usuarioEmail", email);
 
-          alert("Login realizado com sucesso!");
+          showToast("Login realizado com sucesso!");
+
           if (loginModal) loginModal.style.display = "none";
 
-          // Redirecione para o painel após login (ajuste a rota conforme necessário)
-          window.location.href = "dashboard.html";
+          // Redireciona após o toast aparecer
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+
         } else {
-          alert(dados.mensagem || "Email ou senha inválidos.");
+          showToast(dados.mensagem || "Email ou senha inválidos.", "error");
         }
 
       } catch (erro) {
         console.error("Erro ao fazer login:", erro);
-        alert("Erro ao conectar com o servidor. Tente novamente.");
+        showToast("Erro ao conectar com o servidor. Tente novamente.", "error");
       } finally {
-        // Restaura o botão independente do resultado
         btnLogin.innerText = "Entrar";
         btnLogin.disabled = false;
       }
@@ -228,18 +281,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("emailCadastro").value.trim();
       const senha = document.getElementById("senhaCadastro").value.trim();
 
-      // Validação básica no frontend
       if (!nome || !email || !senha) {
-        alert("Preencha todos os campos.");
+        showToast("Preencha todos os campos.", "error");
         return;
       }
 
       if (senha.length < 6) {
-        alert("A senha deve ter pelo menos 6 caracteres.");
+        showToast("A senha deve ter pelo menos 6 caracteres.", "error");
         return;
       }
 
-      // Feedback visual no botão
       btnCadastro.innerText = "Criando conta...";
       btnCadastro.disabled = true;
 
@@ -253,22 +304,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const dados = await resposta.json();
 
         if (resposta.ok) {
-          alert("Conta criada com sucesso! Faça login para continuar.");
+          showToast("Conta criada com sucesso! Faça login para continuar.");
 
-          // Limpa os campos e vai para o modal de login
           document.getElementById("regName").value = "";
           document.getElementById("emailCadastro").value = "";
           document.getElementById("senhaCadastro").value = "";
 
-          if (registerModal) registerModal.style.display = "none";
-          if (loginModal) loginModal.style.display = "block";
+          setTimeout(() => {
+            if (registerModal) registerModal.style.display = "none";
+            if (loginModal) loginModal.style.display = "block";
+          }, 1500);
+
         } else {
-          alert(dados.mensagem || "Erro ao criar conta.");
+          showToast(dados.mensagem || "Erro ao criar conta.", "error");
         }
 
       } catch (erro) {
         console.error("Erro ao cadastrar:", erro);
-        alert("Erro ao conectar com o servidor. Tente novamente.");
+        showToast("Erro ao conectar com o servidor. Tente novamente.", "error");
       } finally {
         btnCadastro.innerText = "Criar conta";
         btnCadastro.disabled = false;
@@ -280,7 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // =====================
   // FETCH BACKEND (teste de conexão)
   // =====================
-  // ⚠️ Troque a URL abaixo pelo endereço real do seu servidor em produção
   fetch('https://pgcred-production.up.railway.app')
     .then(res => res.text())
     .then(data => {

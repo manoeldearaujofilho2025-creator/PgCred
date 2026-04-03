@@ -13,8 +13,8 @@
     <style>
       .btn-demo {
         background: transparent;
-        border: 2px solid #3B82F6;
-        color: #3B82F6;
+        border: 2px solid #3b82f6;
+        color: #3b82f6;
         padding: 11px 22px;
         border-radius: 10px;
         font-weight: bold;
@@ -24,17 +24,19 @@
         margin-left: 12px;
       }
       .btn-demo:hover {
-        background: rgba(59,130,246,0.1);
+        background: rgba(59, 130, 246, 0.1);
         transform: translateY(-2px);
-        box-shadow: 0 0 20px rgba(59,130,246,0.3);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
       }
-      .btn-demo::after { display: none; }
+      .btn-demo::after {
+        display: none;
+      }
 
       /* BANNER DEMO */
       .demo-banner {
         display: none;
         background: linear-gradient(135deg, #1e3a5f, #1e293b);
-        border-bottom: 1px solid rgba(59,130,246,0.4);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.4);
         padding: 10px 20px;
         text-align: center;
         font-size: 0.875rem;
@@ -44,10 +46,14 @@
         z-index: 1000;
       }
 
-      .demo-banner.show { display: block; }
-      .demo-banner strong { color: #3B82F6; }
+      .demo-banner.show {
+        display: block;
+      }
+      .demo-banner strong {
+        color: #3b82f6;
+      }
       .demo-banner a {
-        color: #3B82F6;
+        color: #3b82f6;
         text-decoration: underline;
         cursor: pointer;
         margin-left: 12px;
@@ -58,7 +64,7 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(4px);
         z-index: 9999;
         align-items: center;
@@ -68,22 +74,29 @@
         color: white;
         font-size: 1rem;
       }
-      .demo-loading.show { display: flex; }
+      .demo-loading.show {
+        display: flex;
+      }
       .demo-spinner {
-        width: 44px; height: 44px;
+        width: 44px;
+        height: 44px;
         border: 3px solid #1e293b;
-        border-top-color: #3B82F6;
+        border-top-color: #3b82f6;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
-      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
-
     <!-- BANNER MODO DEMO -->
     <div class="demo-banner" id="demoBanner">
-      🧪 Você está no <strong>Modo Demonstração</strong> — os dados são fictícios e podem ser alterados.
+      🧪 Você está no <strong>Modo Demonstração</strong> — os dados são
+      fictícios e podem ser alterados.
       <a onclick="sairDoDemo()">Criar minha conta →</a>
     </div>
 
@@ -113,7 +126,9 @@
         <div class="hero-text">
           <h1>Transforme seus empréstimos em <span>lucro</span> previsível</h1>
           <p>Controle clientes, parcelas e lucros em um só lugar.</p>
-          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px;">
+          <div
+            style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px"
+          >
             <button id="btn-comecar">Começar Gratuitamente</button>
             <button class="btn-demo" id="btn-demo" onclick="ativarDemo()">
               <i class="fa-solid fa-play"></i> Ver Demonstração
@@ -165,12 +180,17 @@
         <div class="feature-card reveal">
           <i class="fa-solid fa-users"></i>
           <h3>Controle de Clientes</h3>
-          <p>Cadastre, edite e acompanhe todos os seus clientes em um só lugar.</p>
+          <p>
+            Cadastre, edite e acompanhe todos os seus clientes em um só lugar.
+          </p>
         </div>
         <div class="feature-card reveal">
           <i class="fa-solid fa-money-bill-trend-up"></i>
           <h3>Gestão de Empréstimos</h3>
-          <p>Registre valores, juros e parcelas automaticamente sem cálculos manuais.</p>
+          <p>
+            Registre valores, juros e parcelas automaticamente sem cálculos
+            manuais.
+          </p>
         </div>
         <div class="feature-card reveal">
           <i class="fa-solid fa-chart-pie"></i>
@@ -205,7 +225,9 @@
         <div class="benefit-card reveal">
           <i class="fa-solid fa-chart-line"></i>
           <h3>Aumente seus lucros</h3>
-          <p>Tenha visão clara dos seus ganhos e tome decisões mais inteligentes.</p>
+          <p>
+            Tenha visão clara dos seus ganhos e tome decisões mais inteligentes.
+          </p>
         </div>
         <div class="benefit-card reveal">
           <i class="fa-solid fa-clock"></i>
@@ -245,7 +267,10 @@
           <span>+</span>
         </div>
         <div class="faq-answer">
-          <p>Não. Você pode cadastrar quantos clientes e empréstimos quiser, sem limite.</p>
+          <p>
+            Não. Você pode cadastrar quantos clientes e empréstimos quiser, sem
+            limite.
+          </p>
         </div>
       </div>
 
@@ -255,7 +280,10 @@
           <span>+</span>
         </div>
         <div class="faq-answer">
-          <p>Sim, o sistema é totalmente responsivo e funciona em qualquer dispositivo.</p>
+          <p>
+            Sim, o sistema é totalmente responsivo e funciona em qualquer
+            dispositivo.
+          </p>
         </div>
       </div>
 
@@ -265,7 +293,10 @@
           <span>+</span>
         </div>
         <div class="faq-answer">
-          <p>Sim, priorizamos ao máximo a segurança das suas informações. Contamos com backups automáticos e criptografia avançada.</p>
+          <p>
+            Sim, priorizamos ao máximo a segurança das suas informações.
+            Contamos com backups automáticos e criptografia avançada.
+          </p>
         </div>
       </div>
 
@@ -275,7 +306,10 @@
           <span>+</span>
         </div>
         <div class="faq-answer">
-          <p>Oferecemos planos mensais e anuais, com acesso completo conforme o plano escolhido.</p>
+          <p>
+            Oferecemos planos mensais e anuais, com acesso completo conforme o
+            plano escolhido.
+          </p>
         </div>
       </div>
     </section>
@@ -285,7 +319,10 @@
       <div class="footer-container">
         <div class="footer-brand">
           <h2>Pg<span>Cred</span></h2>
-          <p>Controle seus empréstimos, reduza riscos e aumente seus lucros com mais previsibilidade.</p>
+          <p>
+            Controle seus empréstimos, reduza riscos e aumente seus lucros com
+            mais previsibilidade.
+          </p>
         </div>
         <div class="footer-links">
           <h4>Links</h4>
@@ -302,9 +339,12 @@
             <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
           </div>
         </div>
-        <div class="footer-cta">
-          <h4>Comece Agora</h4>
-          <button type="button">Começar Gratuitamente</button>
+        <div
+          style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px"
+        >
+          <button class="btn-demo" id="btn-demo" onclick="ativarDemo()">
+            <i class="fa-solid fa-play"></i> Ver Demonstração
+          </button>
         </div>
       </div>
       <div class="footer-bottom">
@@ -319,12 +359,22 @@
         <h2>Login</h2>
         <form>
           <label for="email">Email:</label>
-          <input type="email" id="email" placeholder="Digite seu Email" required />
+          <input
+            type="email"
+            id="email"
+            placeholder="Digite seu Email"
+            required
+          />
           <label for="senha">Senha:</label>
-          <input type="password" id="senha" placeholder="Digite sua senha" required />
+          <input
+            type="password"
+            id="senha"
+            placeholder="Digite sua senha"
+            required
+          />
           <button type="button" id="btn-login">Entrar</button>
         </form>
-        <p style="margin-top:15px; text-align:center;">
+        <p style="margin-top: 15px; text-align: center">
           Não tem conta? <a href="#" id="openRegister">Criar conta</a>
         </p>
       </div>
@@ -339,12 +389,22 @@
           <label for="regName">Nome:</label>
           <input type="text" id="regName" placeholder="Seu nome" required />
           <label for="emailCadastro">Email:</label>
-          <input type="email" id="emailCadastro" placeholder="Digite seu Email" required />
+          <input
+            type="email"
+            id="emailCadastro"
+            placeholder="Digite seu Email"
+            required
+          />
           <label for="senhaCadastro">Senha:</label>
-          <input type="password" id="senhaCadastro" placeholder="Crie uma senha" required />
+          <input
+            type="password"
+            id="senhaCadastro"
+            placeholder="Crie uma senha"
+            required
+          />
           <button type="button" id="btn-cadastro">Criar conta</button>
         </form>
-        <p style="margin-top:15px; text-align:center;">
+        <p style="margin-top: 15px; text-align: center">
           Já tem conta? <a href="#" id="openLogin">Entrar</a>
         </p>
       </div>
@@ -356,42 +416,45 @@
       // MODO DEMO
       // =====================
       async function ativarDemo() {
-        const loading = document.getElementById('demoLoading');
-        loading.classList.add('show');
+        const loading = document.getElementById("demoLoading");
+        loading.classList.add("show");
 
         try {
-          const res = await fetch('https://pgcred-production.up.railway.app/demo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          });
+          const res = await fetch(
+            "https://pgcred-production.up.railway.app/demo",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            },
+          );
 
           const dados = await res.json();
 
           if (res.ok) {
-            localStorage.setItem('token', dados.token);
-            localStorage.setItem('usuarioEmail', dados.usuario.email);
-            localStorage.setItem('isDemo', 'true');
-            window.location.href = 'dashboard.html';
+            localStorage.setItem("token", dados.token);
+            localStorage.setItem("usuarioEmail", dados.usuario.email);
+            localStorage.setItem("isDemo", "true");
+            window.location.href = "dashboard.html";
           } else {
-            loading.classList.remove('show');
-            alert('Erro ao ativar demonstração. Tente novamente.');
+            loading.classList.remove("show");
+            alert("Erro ao ativar demonstração. Tente novamente.");
           }
-        } catch(e) {
-          loading.classList.remove('show');
-          alert('Erro ao conectar com o servidor.');
+        } catch (e) {
+          loading.classList.remove("show");
+          alert("Erro ao conectar com o servidor.");
         }
       }
 
       function sairDoDemo() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuarioEmail');
-        localStorage.removeItem('isDemo');
-        window.location.href = 'index.html';
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuarioEmail");
+        localStorage.removeItem("isDemo");
+        window.location.href = "index.html";
       }
 
       // Mostrar banner se veio do demo
-      if (localStorage.getItem('isDemo')) {
-        document.getElementById('demoBanner').classList.add('show');
+      if (localStorage.getItem("isDemo")) {
+        document.getElementById("demoBanner").classList.add("show");
       }
     </script>
   </body>

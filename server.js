@@ -599,6 +599,44 @@ app.put('/emprestimos/:id', autenticar, async (req, res) => {
 })
 
 // =====================
+// ROTA DE LOGIN DEMO
+// =====================
+app.post('/demo', async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      'SELECT * FROM usuarios WHERE email = $1',
+      ['demo@pgcred.com']
+    )
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensagem: "Usuário demo não encontrado" })
+    }
+
+    const usuario = resultado.rows[0]
+
+    const token = jwt.sign(
+      { id: usuario.id, email: usuario.email, nome: usuario.nome, demo: true },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    )
+
+    res.json({
+      mensagem: "Modo demo ativado!",
+      token,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email
+      }
+    })
+
+  } catch (erro) {
+    console.error('Erro ao ativar demo:', erro.message)
+    res.status(500).json({ mensagem: "Erro interno no servidor" })
+  }
+})
+
+// =====================
 // SERVIDOR
 // =====================
 const PORT = process.env.PORT || 3000

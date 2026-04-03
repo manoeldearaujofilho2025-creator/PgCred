@@ -78,12 +78,6 @@
   </head>
   <body>
 
-    <!-- BANNER MODO DEMO -->
-    <div class="demo-banner" id="demoBanner">
-      🧪 Você está no <strong>Modo Demonstração</strong> — os dados são fictícios e podem ser alterados.
-      <a onclick="sairDoDemo()">Criar minha conta →</a>
-    </div>
-
     <!-- LOADING DEMO -->
     <div class="demo-loading" id="demoLoading">
       <div class="demo-spinner"></div>
@@ -385,10 +379,7 @@
         window.location.href = 'index.html';
       }
 
-      // Mostrar banner se vier do demo
-      if (localStorage.getItem('isDemo')) {
-        document.getElementById('demoBanner').classList.add('show');
-      }
+
     </script>
   </body>
 </html>

@@ -1,14 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   // =====================
   // TOAST
   // =====================
-  function showToast(msg, tipo = 'success') {
-    let toast = document.getElementById('toast-global');
+  function showToast(msg, tipo = "success") {
+    let toast = document.getElementById("toast-global");
 
     if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'toast-global';
+      toast = document.createElement("div");
+      toast.id = "toast-global";
       toast.style.cssText = `
         position: fixed;
         bottom: 28px;
@@ -33,29 +32,29 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.appendChild(toast);
     }
 
-    const cor = tipo === 'success' ? '#3B82F6' : '#ef4444';
-    const icone = tipo === 'success' ? '✔' : '✖';
+    const cor = tipo === "success" ? "#3B82F6" : "#ef4444";
+    const icone = tipo === "success" ? "✔" : "✖";
 
-    toast.style.borderColor = tipo === 'success' ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)';
+    toast.style.borderColor =
+      tipo === "success" ? "rgba(59,130,246,0.3)" : "rgba(239,68,68,0.3)";
     toast.innerHTML = `
       <span style="color:${cor}; font-size:1rem;">${icone}</span>
       <span>${msg}</span>
     `;
 
-    toast.style.transform = 'translateY(0)';
-    toast.style.opacity = '1';
+    toast.style.transform = "translateY(0)";
+    toast.style.opacity = "1";
 
     setTimeout(() => {
-      toast.style.transform = 'translateY(80px)';
-      toast.style.opacity = '0';
+      toast.style.transform = "translateY(80px)";
+      toast.style.opacity = "0";
     }, 3500);
   }
-
 
   // =====================
   // BOTÃO COMECAR
   // =====================
-  const botao = document.getElementById('btn-comecar');
+  const botao = document.getElementById("btn-comecar");
 
   if (botao) {
     botao.addEventListener("click", function () {
@@ -65,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 2000);
     });
   }
-
 
   // =====================
   // REVEAL NO SCROLL
@@ -85,16 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("scroll", revealOnScroll);
 
-
   // =====================
   // CONTADOR ANIMADO
   // =====================
-  const counters = document.querySelectorAll('.counter');
+  const counters = document.querySelectorAll(".counter");
   let started = false;
 
   function startCounters() {
-    counters.forEach(counter => {
-      const target = +counter.getAttribute('data-target');
+    counters.forEach((counter) => {
+      const target = +counter.getAttribute("data-target");
       let count = 0;
       const increment = target / 120;
 
@@ -102,10 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
         count += increment;
 
         if (count < target) {
-          counter.innerText = Math.floor(count).toLocaleString('pt-BR');
+          counter.innerText = Math.floor(count).toLocaleString("pt-BR");
           requestAnimationFrame(updateCount);
         } else {
-          counter.innerText = target.toLocaleString('pt-BR') + '+';
+          counter.innerText = target.toLocaleString("pt-BR") + "+";
         }
       };
 
@@ -113,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  window.addEventListener('scroll', () => {
-    const section = document.querySelector('.hero-stats');
+  window.addEventListener("scroll", () => {
+    const section = document.querySelector(".hero-stats");
 
     if (section && !started) {
       const top = section.getBoundingClientRect().top;
@@ -127,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
   // =====================
   // ANIMAÇÃO DE LOAD (HERO)
   // =====================
@@ -139,18 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (heroStats) heroStats.classList.add("show");
   if (heroCards) heroCards.classList.add("show");
 
-
   // =====================
   // FAQ ACCORDION
   // =====================
-  const faqs = document.querySelectorAll('.faq-item');
+  const faqs = document.querySelectorAll(".faq-item");
 
-  faqs.forEach(faq => {
-    faq.addEventListener('click', () => {
-      faq.classList.toggle('active');
+  faqs.forEach((faq) => {
+    faq.addEventListener("click", () => {
+      faq.classList.toggle("active");
     });
   });
-
 
   // =====================
   // MENU HAMBURGUER
@@ -160,10 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (menuToggle && navUl) {
     menuToggle.addEventListener("click", () => {
-      navUl.classList.toggle("show-menu");
+      navUl.classList.toggle("active");
     });
   }
-
 
   // =====================
   // MODAIS LOGIN / REGISTRO
@@ -181,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  closeButtons.forEach(btn => {
+  closeButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       if (loginModal) loginModal.style.display = "none";
       if (registerModal) registerModal.style.display = "none";
@@ -189,8 +182,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   window.addEventListener("click", (e) => {
-    if (loginModal && e.target === loginModal) loginModal.style.display = "none";
-    if (registerModal && e.target === registerModal) registerModal.style.display = "none";
+    if (loginModal && e.target === loginModal)
+      loginModal.style.display = "none";
+    if (registerModal && e.target === registerModal)
+      registerModal.style.display = "none";
   });
 
   if (openRegister) {
@@ -208,7 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (loginModal) loginModal.style.display = "block";
     });
   }
-
 
   // =====================
   // LOGIN
@@ -234,11 +228,14 @@ document.addEventListener("DOMContentLoaded", () => {
       btnLogin.disabled = true;
 
       try {
-        const resposta = await fetch("https://pgcred-production.up.railway.app/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, senha })
-        });
+        const resposta = await fetch(
+          "https://pgcred-production.up.railway.app/login",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, senha }),
+          },
+        );
 
         const dados = await resposta.json();
 
@@ -254,11 +251,9 @@ document.addEventListener("DOMContentLoaded", () => {
           setTimeout(() => {
             window.location.href = "dashboard.html";
           }, 1000);
-
         } else {
           showToast(dados.mensagem || "Email ou senha inválidos.", "error");
         }
-
       } catch (erro) {
         console.error("Erro ao fazer login:", erro);
         showToast("Erro ao conectar com o servidor. Tente novamente.", "error");
@@ -268,7 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
 
   // =====================
   // CADASTRO
@@ -295,11 +289,14 @@ document.addEventListener("DOMContentLoaded", () => {
       btnCadastro.disabled = true;
 
       try {
-        const resposta = await fetch("https://pgcred-production.up.railway.app/cadastro", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome, email, senha })
-        });
+        const resposta = await fetch(
+          "https://pgcred-production.up.railway.app/cadastro",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome, email, senha }),
+          },
+        );
 
         const dados = await resposta.json();
 
@@ -314,11 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (registerModal) registerModal.style.display = "none";
             if (loginModal) loginModal.style.display = "block";
           }, 1500);
-
         } else {
           showToast(dados.mensagem || "Erro ao criar conta.", "error");
         }
-
       } catch (erro) {
         console.error("Erro ao cadastrar:", erro);
         showToast("Erro ao conectar com o servidor. Tente novamente.", "error");
@@ -329,17 +324,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-
   // =====================
   // FETCH BACKEND (teste de conexão)
   // =====================
-  fetch('https://pgcred-production.up.railway.app')
-    .then(res => res.text())
-    .then(data => {
+  fetch("https://pgcred-production.up.railway.app")
+    .then((res) => res.text())
+    .then((data) => {
       console.log(data);
     })
-    .catch(err => {
-      console.error('Erro ao conectar com o servidor:', err);
+    .catch((err) => {
+      console.error("Erro ao conectar com o servidor:", err);
     });
-
 });

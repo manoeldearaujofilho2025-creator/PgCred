@@ -8,13 +8,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
 </head>
-
 <body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="layout">
 
   <!-- TOPBAR -->
   <header class="topbar">
+    <button class="menu-toggle-dash" id="menuToggleDash">
+      <i class="fa-solid fa-bars"></i>
+    </button>
     <div class="topbar-logo">Pg<span>Cred</span></div>
     <div class="topbar-right">
       <div class="topbar-user">
@@ -30,22 +34,12 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <span class="sidebar-label">Menu</span>
-    <a class="nav-item active" href="#">
-      <i class="fa-solid fa-gauge"></i> Dashboard
-    </a>
-    <a class="nav-item" href="clientes.html">
-      <i class="fa-solid fa-users"></i> Clientes
-    </a>
-    <a class="nav-item" href="emprestimos.html">
-      <i class="fa-solid fa-money-bill-trend-up"></i> Empréstimos
-    </a>
-    <a class="nav-item" href="relatorios.html">
-      <i class="fa-solid fa-chart-pie"></i> Relatórios
-    </a>
+    <a class="nav-item active" href="#"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+    <a class="nav-item" href="clientes.html"><i class="fa-solid fa-users"></i> Clientes</a>
+    <a class="nav-item" href="emprestimos.html"><i class="fa-solid fa-money-bill-trend-up"></i> Empréstimos</a>
+    <a class="nav-item" href="relatorios.html"><i class="fa-solid fa-chart-pie"></i> Relatórios</a>
     <span class="sidebar-label">Conta</span>
-    <a class="nav-item" href="configuracoes.html">
-      <i class="fa-solid fa-gear"></i> Configurações
-    </a>
+    <a class="nav-item" href="configuracoes.html"><i class="fa-solid fa-gear"></i> Configurações</a>
   </aside>
 
   <!-- MAIN -->
@@ -58,7 +52,6 @@
       </div>
     </div>
 
-    <!-- CARDS DE RESUMO -->
     <div class="summary-grid">
       <div class="summary-card green">
         <div class="card-icon"><i class="fa-solid fa-money-bill-trend-up"></i></div>
@@ -86,16 +79,13 @@
       </div>
     </div>
 
-    <!-- BOTTOM GRID -->
     <div class="bottom-grid">
-
-      <!-- TABELA DE EMPRÉSTIMOS RECENTES -->
       <div class="panel">
         <div class="panel-header">
           <h2>Empréstimos Recentes</h2>
           <a href="emprestimos.html">Ver todos →</a>
         </div>
-        <div class="table-wrap">
+        <div style="overflow-x:auto">
           <table>
             <thead>
               <tr>
@@ -106,190 +96,102 @@
               </tr>
             </thead>
             <tbody id="tabelaEmprestimos">
-              <tr>
-                <td colspan="4">
-                  <div class="empty-state">
-                    <i class="fa-solid fa-inbox"></i>
-                    <p>Nenhum empréstimo registrado ainda.</p>
-                  </div>
-                </td>
-              </tr>
+              <tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Nenhum empréstimo registrado ainda.</p></div></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-
-      <!-- STATUS DOS EMPRÉSTIMOS -->
       <div class="panel">
-        <div class="panel-header">
-          <h2>Empréstimos por Status</h2>
-        </div>
+        <div class="panel-header"><h2>Empréstimos por Status</h2></div>
         <div class="activity-list" id="atividadeRecente">
-          <div class="empty-state">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <p>Nenhuma atividade ainda.</p>
-          </div>
+          <div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>Nenhuma atividade ainda.</p></div>
         </div>
       </div>
-
     </div>
   </main>
-
 </div>
 
 <script>
   const token = localStorage.getItem('token');
   const email = localStorage.getItem('usuarioEmail');
-
   if (!token) window.location.href = 'index.html';
-
   const API = 'https://pgcred-production.up.railway.app';
 
-  function moeda(v) {
-    return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-  }
+  function moeda(v) { return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
 
-  // =====================
-  // CARREGAR PERFIL
-  // =====================
   async function carregarPerfil() {
     try {
-      const res = await fetch(`${API}/perfil`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-
+      const res = await fetch(`${API}/perfil`, { headers: { 'Authorization': 'Bearer ' + token } });
       if (!res.ok) { logout(); return; }
-
       const dados = await res.json();
       const nome = dados.usuario.nome;
       document.getElementById('nomeUsuario').textContent = nome;
       document.getElementById('avatarInitial').textContent = nome.charAt(0).toUpperCase();
-
-    } catch (erro) {
-      console.error('Erro ao carregar perfil:', erro);
-      document.getElementById('nomeUsuario').textContent = email || 'Usuário';
-    }
+    } catch (e) { document.getElementById('nomeUsuario').textContent = email || 'Usuário'; }
   }
 
-  // =====================
-  // CARREGAR RESUMO
-  // =====================
   async function carregarResumo() {
     try {
-      const res = await fetch(`${API}/resumo`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-
+      const res = await fetch(`${API}/resumo`, { headers: { 'Authorization': 'Bearer ' + token } });
       const dados = await res.json();
-
       document.getElementById('totalEmprestado').textContent    = moeda(dados.total_emprestado);
       document.getElementById('lucroTotal').textContent         = moeda(dados.lucro_total);
       document.getElementById('totalInadimplentes').textContent = dados.total_inadimplentes;
       document.getElementById('totalClientes').textContent      = dados.total_clientes;
       document.getElementById('totalEmprestimos').textContent   = dados.total_emprestimos;
-
-    } catch (erro) {
-      console.error('Erro ao carregar resumo:', erro);
-    }
+    } catch (e) { console.error(e); }
   }
 
-  // =====================
-  // CARREGAR EMPRÉSTIMOS RECENTES
-  // =====================
   async function carregarEmprestimos() {
     try {
-      const res = await fetch(`${API}/emprestimos`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-
+      const res = await fetch(`${API}/emprestimos`, { headers: { 'Authorization': 'Bearer ' + token } });
       const dados = await res.json();
       const lista = dados.emprestimos || [];
       const recentes = lista.slice(0, 5);
-
       const corpo = document.getElementById('tabelaEmprestimos');
 
       if (recentes.length === 0) {
-        corpo.innerHTML = `
-          <tr><td colspan="4">
-            <div class="empty-state">
-              <i class="fa-solid fa-inbox"></i>
-              <p>Nenhum empréstimo registrado ainda.</p>
-            </div>
-          </td></tr>`;
+        corpo.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Nenhum empréstimo registrado ainda.</p></div></td></tr>`;
       } else {
         corpo.innerHTML = recentes.map(e => `
           <tr>
-            <td>
-              <div class="client-cell">
-                <div class="client-avatar">${e.cliente_nome.charAt(0).toUpperCase()}</div>
-                ${e.cliente_nome}
-              </div>
-            </td>
+            <td><div class="client-cell"><div class="client-avatar">${e.cliente_nome.charAt(0).toUpperCase()}</div>${e.cliente_nome}</div></td>
             <td>${moeda(e.valor)}</td>
             <td>${e.num_parcelas}x ${moeda(e.valor_parcela)}</td>
             <td><span class="status-badge ${e.status}">${e.status.charAt(0).toUpperCase() + e.status.slice(1)}</span></td>
-          </tr>
-        `).join('');
+          </tr>`).join('');
       }
 
-      // Status dos empréstimos
-      const pago     = lista.filter(e => e.status === 'pago').length;
+      const pago = lista.filter(e => e.status === 'pago').length;
       const pendente = lista.filter(e => e.status === 'pendente').length;
       const atrasado = lista.filter(e => e.status === 'atrasado').length;
-      const total    = lista.length || 1;
+      const total = lista.length || 1;
 
-      if (lista.length === 0) return;
-
-      document.getElementById('atividadeRecente').innerHTML = `
-        <div class="activity-item">
-          <div class="activity-dot" style="background:#3B82F6"></div>
-          <div class="activity-text">
-            <p>Pagos</p>
-            <span>${pago} empréstimo(s)</span>
-          </div>
-          <div class="activity-value" style="color:#3B82F6">${Math.round(pago/total*100)}%</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:#f59e0b"></div>
-          <div class="activity-text">
-            <p>Pendentes</p>
-            <span>${pendente} empréstimo(s)</span>
-          </div>
-          <div class="activity-value" style="color:#f59e0b">${Math.round(pendente/total*100)}%</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:#ef4444"></div>
-          <div class="activity-text">
-            <p>Atrasados</p>
-            <span>${atrasado} empréstimo(s)</span>
-          </div>
-          <div class="activity-value" style="color:#ef4444">${Math.round(atrasado/total*100)}%</div>
-        </div>
-      `;
-
-    } catch (erro) {
-      console.error('Erro ao carregar empréstimos:', erro);
-    }
+      if (lista.length > 0) {
+        document.getElementById('atividadeRecente').innerHTML = `
+          <div class="activity-item"><div class="activity-dot" style="background:#3B82F6"></div><div class="activity-text"><p>Pagos</p><span>${pago} empréstimo(s)</span></div><div class="activity-value" style="color:#3B82F6">${Math.round(pago/total*100)}%</div></div>
+          <div class="activity-item"><div class="activity-dot" style="background:#f59e0b"></div><div class="activity-text"><p>Pendentes</p><span>${pendente} empréstimo(s)</span></div><div class="activity-value" style="color:#f59e0b">${Math.round(pendente/total*100)}%</div></div>
+          <div class="activity-item"><div class="activity-dot" style="background:#ef4444"></div><div class="activity-text"><p>Atrasados</p><span>${atrasado} empréstimo(s)</span></div><div class="activity-value" style="color:#ef4444">${Math.round(atrasado/total*100)}%</div></div>`;
+      }
+    } catch (e) { console.error(e); }
   }
 
-  // =====================
-  // LOGOUT
-  // =====================
-  function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuarioEmail');
-    window.location.href = 'index.html';
-  }
+  function logout() { localStorage.removeItem('token'); localStorage.removeItem('usuarioEmail'); window.location.href = 'index.html'; }
 
-  // INIT
   carregarPerfil();
   carregarResumo();
   carregarEmprestimos();
 </script>
 
+<script>
+  const menuToggleDash = document.getElementById('menuToggleDash');
+  const sidebarEl = document.querySelector('.sidebar');
+  const sidebarOverlayEl = document.getElementById('sidebarOverlay');
+  if (menuToggleDash) {
+    menuToggleDash.addEventListener('click', () => { sidebarEl.classList.toggle('open'); sidebarOverlayEl.classList.toggle('show'); });
+    sidebarOverlayEl.addEventListener('click', () => { sidebarEl.classList.remove('open'); sidebarOverlayEl.classList.remove('show'); });
+  }
 </script>
 
 </body>
-
-
 </html>

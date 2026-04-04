@@ -1,296 +1,429 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PgCred — Clientes</title>
-  <link rel="icon" href="assets/PgCred-Icon.jpeg" type="image/png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/dashboard.css" />
-  <style>
-    .btn-edit {
-      background: transparent;
-      border: 1px solid #1e293b;
-      color: #9ca3af;
-      padding: 5px 10px;
-      border-radius: 7px;
-      font-size: 0.72rem;
-      cursor: pointer;
-      transition: 0.3s;
-      font-weight: normal;
-      box-shadow: none;
-    }
-    .btn-edit:hover { border-color: #3B82F6; color: #3B82F6; transform: none; box-shadow: none; }
-    .btn-edit::after { display: none; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PgCred — Clientes</title>
+    <link rel="icon" href="assets/PgCred-Icon.jpeg" type="image/png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <style>
+      .btn-edit {
+        background: transparent;
+        border: 1px solid #1e293b;
+        color: #9ca3af;
+        padding: 5px 10px;
+        border-radius: 7px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: normal;
+        box-shadow: none;
+      }
+      .btn-edit:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        transform: none;
+        box-shadow: none;
+      }
+      .btn-edit::after {
+        display: none;
+      }
 
-    /* TOAST */
-    .toast {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      background: #111827;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.875rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 999;
-      min-width: 260px;
-      color: white;
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.success { border-color: rgba(59,130,246,0.3); }
-    .toast.error   { border-color: rgba(239,68,68,0.3); }
+      /* TOAST */
+      .toast {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        background: #111827;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.875rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 999;
+        min-width: 260px;
+        color: white;
+      }
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .toast.success {
+        border-color: rgba(59, 130, 246, 0.3);
+      }
+      .toast.error {
+        border-color: rgba(239, 68, 68, 0.3);
+      }
 
-    /* MODAL CONFIRMAR EXCLUSÃO */
-    .confirm-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-    }
-    .confirm-overlay.open { display: flex; }
-    .confirm-box {
-      background: #111827;
-      border: 1px solid rgba(239,68,68,0.3);
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
-      animation: fadeUp 0.3s ease both;
-    }
-    .confirm-box .danger-icon {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: rgba(239,68,68,0.1);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; color: #ef4444;
-      margin: 0 auto 16px;
-    }
-    .confirm-box h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
-    .confirm-box p  { color: #9ca3af; font-size: 0.85rem; margin-bottom: 24px; }
-    .confirm-actions { display: flex; gap: 10px; }
-    .btn-confirm-cancel {
-      flex: 1; background: transparent; border: 1px solid #1e293b;
-      color: #9ca3af; padding: 10px; border-radius: 10px;
-      font-family: Arial; font-size: 0.875rem; cursor: pointer; transition: 0.3s;
-      font-weight: normal; box-shadow: none;
-    }
-    .btn-confirm-cancel:hover { border-color: white; color: white; transform: none; box-shadow: none; }
-    .btn-confirm-cancel::after { display: none; }
-    .btn-confirm-delete {
-      flex: 1; background: #ef4444; border: none; color: white;
-      padding: 10px; border-radius: 10px; font-family: Arial;
-      font-size: 0.875rem; font-weight: bold; cursor: pointer; transition: 0.3s;
-    }
-    .btn-confirm-delete:hover { background: #dc2626; transform: none; box-shadow: 0 0 15px rgba(239,68,68,0.3); }
-    .btn-confirm-delete::after { display: none; }
+      /* MODAL CONFIRMAR EXCLUSÃO */
+      .confirm-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+      }
+      .confirm-overlay.open {
+        display: flex;
+      }
+      .confirm-box {
+        background: #111827;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 16px;
+        padding: 32px;
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
+        animation: fadeUp 0.3s ease both;
+      }
+      .confirm-box .danger-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #ef4444;
+        margin: 0 auto 16px;
+      }
+      .confirm-box h3 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+      .confirm-box p {
+        color: #9ca3af;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+      }
+      .confirm-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-confirm-cancel {
+        flex: 1;
+        background: transparent;
+        border: 1px solid #1e293b;
+        color: #9ca3af;
+        padding: 10px;
+        border-radius: 10px;
+        font-family: Arial;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: normal;
+        box-shadow: none;
+      }
+      .btn-confirm-cancel:hover {
+        border-color: white;
+        color: white;
+        transform: none;
+        box-shadow: none;
+      }
+      .btn-confirm-cancel::after {
+        display: none;
+      }
+      .btn-confirm-delete {
+        flex: 1;
+        background: #ef4444;
+        border: none;
+        color: white;
+        padding: 10px;
+        border-radius: 10px;
+        font-family: Arial;
+        font-size: 0.875rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .btn-confirm-delete:hover {
+        background: #dc2626;
+        transform: none;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+      }
+      .btn-confirm-delete::after {
+        display: none;
+      }
 
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
-</head>
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toastIcon">✔</span>
-  <span id="toastMsg">Salvo!</span>
-</div>
-
-<!-- MODAL CONFIRMAR EXCLUSÃO -->
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <div class="danger-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-    <h3>Remover cliente?</h3>
-    <p>Esta ação é irreversível. Todos os empréstimos deste cliente também serão removidos.</p>
-    <div class="confirm-actions">
-      <button class="btn-confirm-cancel" onclick="fecharConfirm()">Cancelar</button>
-      <button class="btn-confirm-delete" id="btnConfirmDelete">Remover</button>
-    </div>
-  </div>
-</div>
-
-<div class="layout">
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="topbar-logo">Pg<span>Cred</span></div>
-    <div class="topbar-right">
-      <div class="topbar-user">
-        <div class="avatar" id="avatarInitial">?</div>
-        Olá, <strong id="nomeUsuario">Carregando...</strong>
-      </div>
-      <button class="btn-logout" onclick="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i> Sair
-      </button>
-    </div>
-  </header>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <span class="sidebar-label">Menu</span>
-    <a class="nav-item" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-    <a class="nav-item active" href="clientes.html"><i class="fa-solid fa-users"></i> Clientes</a>
-    <a class="nav-item" href="emprestimos.html"><i class="fa-solid fa-money-bill-trend-up"></i> Empréstimos</a>
-    <a class="nav-item" href="relatorios.html"><i class="fa-solid fa-chart-pie"></i> Relatórios</a>
-    <span class="sidebar-label">Conta</span>
-    <a class="nav-item" href="configuracoes.html"><i class="fa-solid fa-gear"></i> Configurações</a>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <div class="page-header">
-      <div>
-        <h1>Clientes</h1>
-        <p>Gerencie todos os seus clientes</p>
-      </div>
-      <button class="btn-primary" onclick="abrirModal()">
-        <i class="fa-solid fa-plus"></i> Novo Cliente
-      </button>
-    </div>
-
-    <div class="search-bar">
-      <div class="search-input">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="busca" placeholder="Buscar por nome, CPF ou email..." oninput="filtrarClientes()" />
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <h2>Lista de Clientes</h2>
-        <div class="total-badge">Total: <span id="totalClientes">0</span></div>
-      </div>
-      <div id="tabelaWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>CPF</th>
-              <th>Telefone</th>
-              <th>Email</th>
-              <th>Cadastrado em</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="corpoTabela"></tbody>
-        </table>
-      </div>
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+      <span id="toastIcon">✔</span>
+      <span id="toastMsg">Salvo!</span>
     </div>
 
-  </main>
-</div>
-
-<!-- MODAL NOVO / EDITAR CLIENTE -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-box">
-    <h2 id="modalTitulo">Novo Cliente</h2>
-    <p id="modalSubtitulo">Preencha os dados do cliente abaixo</p>
-
-    <input type="hidden" id="clienteId" />
-
-    <div class="form-group">
-      <label>Nome completo *</label>
-      <input type="text" id="clienteNome" placeholder="Ex: João da Silva" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>CPF *</label>
-        <input type="text" id="clienteCpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCpf(this)" />
-      </div>
-      <div class="form-group">
-        <label>Telefone</label>
-        <input type="text" id="clienteTelefone" placeholder="(00) 00000-0000" maxlength="15" oninput="mascaraTelefone(this)" />
+    <!-- MODAL CONFIRMAR EXCLUSÃO -->
+    <div class="confirm-overlay" id="confirmOverlay">
+      <div class="confirm-box">
+        <div class="danger-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3>Remover cliente?</h3>
+        <p>
+          Esta ação é irreversível. Todos os empréstimos deste cliente também
+          serão removidos.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn-confirm-cancel" onclick="fecharConfirm()">
+            Cancelar
+          </button>
+          <button class="btn-confirm-delete" id="btnConfirmDelete">
+            Remover
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="clienteEmail" placeholder="email@exemplo.com" />
+    <div class="layout">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <button class="menu-toggle-dash" id="menuToggleDash">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-logo">Pg<span>Cred</span></div>
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="avatar" id="avatarInitial">?</div>
+            Olá, <strong id="nomeUsuario">Carregando...</strong>
+          </div>
+          <button class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Sair
+          </button>
+        </div>
+      </header>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <span class="sidebar-label">Menu</span>
+        <a class="nav-item" href="dashboard.html"
+          ><i class="fa-solid fa-gauge"></i> Dashboard</a
+        >
+        <a class="nav-item active" href="clientes.html"
+          ><i class="fa-solid fa-users"></i> Clientes</a
+        >
+        <a class="nav-item" href="emprestimos.html"
+          ><i class="fa-solid fa-money-bill-trend-up"></i> Empréstimos</a
+        >
+        <a class="nav-item" href="relatorios.html"
+          ><i class="fa-solid fa-chart-pie"></i> Relatórios</a
+        >
+        <span class="sidebar-label">Conta</span>
+        <a class="nav-item" href="configuracoes.html"
+          ><i class="fa-solid fa-gear"></i> Configurações</a
+        >
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1>Clientes</h1>
+            <p>Gerencie todos os seus clientes</p>
+          </div>
+          <button class="btn-primary" onclick="abrirModal()">
+            <i class="fa-solid fa-plus"></i> Novo Cliente
+          </button>
+        </div>
+
+        <div class="search-bar">
+          <div class="search-input">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              id="busca"
+              placeholder="Buscar por nome, CPF ou email..."
+              oninput="filtrarClientes()"
+            />
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Lista de Clientes</h2>
+            <div class="total-badge">
+              Total: <span id="totalClientes">0</span>
+            </div>
+          </div>
+          <div id="tabelaWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>CPF</th>
+                  <th>Telefone</th>
+                  <th>Email</th>
+                  <th>Cadastrado em</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="corpoTabela"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
 
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-save" id="btnSalvar" onclick="salvarCliente()">
-        <i class="fa-solid fa-check"></i> Salvar Cliente
-      </button>
+    <!-- MODAL NOVO / EDITAR CLIENTE -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-box">
+        <h2 id="modalTitulo">Novo Cliente</h2>
+        <p id="modalSubtitulo">Preencha os dados do cliente abaixo</p>
+
+        <input type="hidden" id="clienteId" />
+
+        <div class="form-group">
+          <label>Nome completo *</label>
+          <input type="text" id="clienteNome" placeholder="Ex: João da Silva" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>CPF *</label>
+            <input
+              type="text"
+              id="clienteCpf"
+              placeholder="000.000.000-00"
+              maxlength="14"
+              oninput="mascaraCpf(this)"
+            />
+          </div>
+          <div class="form-group">
+            <label>Telefone</label>
+            <input
+              type="text"
+              id="clienteTelefone"
+              placeholder="(00) 00000-0000"
+              maxlength="15"
+              oninput="mascaraTelefone(this)"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            id="clienteEmail"
+            placeholder="email@exemplo.com"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+          <button class="btn-save" id="btnSalvar" onclick="salvarCliente()">
+            <i class="fa-solid fa-check"></i> Salvar Cliente
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<script>
-  const token = localStorage.getItem('token');
-  if (!token) window.location.href = 'index.html';
+    <script>
+      const token = localStorage.getItem("token");
+      if (!token) window.location.href = "index.html";
 
-  let todosClientes = [];
-  let clienteParaDeletar = null;
+      let todosClientes = [];
+      let clienteParaDeletar = null;
 
-  // =====================
-  // TOAST
-  // =====================
-  function showToast(msg, tipo = 'success') {
-    const toast = document.getElementById('toast');
-    const cor = tipo === 'success' ? '#3B82F6' : '#ef4444';
-    document.getElementById('toastIcon').textContent = tipo === 'success' ? '✔' : '✖';
-    document.getElementById('toastIcon').style.color = cor;
-    document.getElementById('toastMsg').textContent = msg;
-    toast.style.borderColor = tipo === 'success' ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3500);
-  }
+      // =====================
+      // TOAST
+      // =====================
+      function showToast(msg, tipo = "success") {
+        const toast = document.getElementById("toast");
+        const cor = tipo === "success" ? "#3B82F6" : "#ef4444";
+        document.getElementById("toastIcon").textContent =
+          tipo === "success" ? "✔" : "✖";
+        document.getElementById("toastIcon").style.color = cor;
+        document.getElementById("toastMsg").textContent = msg;
+        toast.style.borderColor =
+          tipo === "success" ? "rgba(59,130,246,0.3)" : "rgba(239,68,68,0.3)";
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3500);
+      }
 
-  // =====================
-  // CARREGAR PERFIL
-  // =====================
-  async function carregarPerfil() {
-    try {
-      const res = await fetch('https://pgcred-production.up.railway.app/perfil', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      if (!res.ok) { logout(); return; }
-      const dados = await res.json();
-      const nome = dados.usuario.nome;
-      document.getElementById('nomeUsuario').textContent = nome;
-      document.getElementById('avatarInitial').textContent = nome.charAt(0).toUpperCase();
-    } catch (e) { console.error(e); }
-  }
+      // =====================
+      // CARREGAR PERFIL
+      // =====================
+      async function carregarPerfil() {
+        try {
+          const res = await fetch(
+            "https://pgcred-production.up.railway.app/perfil",
+            {
+              headers: { Authorization: "Bearer " + token },
+            },
+          );
+          if (!res.ok) {
+            logout();
+            return;
+          }
+          const dados = await res.json();
+          const nome = dados.usuario.nome;
+          document.getElementById("nomeUsuario").textContent = nome;
+          document.getElementById("avatarInitial").textContent = nome
+            .charAt(0)
+            .toUpperCase();
+        } catch (e) {
+          console.error(e);
+        }
+      }
 
-  // =====================
-  // CARREGAR CLIENTES
-  // =====================
-  async function carregarClientes() {
-    try {
-      const res = await fetch('https://pgcred-production.up.railway.app/clientes', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      const dados = await res.json();
-      todosClientes = dados.clientes || [];
-      renderizarTabela(todosClientes);
-    } catch (e) { console.error('Erro ao carregar clientes:', e); }
-  }
+      // =====================
+      // CARREGAR CLIENTES
+      // =====================
+      async function carregarClientes() {
+        try {
+          const res = await fetch(
+            "https://pgcred-production.up.railway.app/clientes",
+            {
+              headers: { Authorization: "Bearer " + token },
+            },
+          );
+          const dados = await res.json();
+          todosClientes = dados.clientes || [];
+          renderizarTabela(todosClientes);
+        } catch (e) {
+          console.error("Erro ao carregar clientes:", e);
+        }
+      }
 
-  // =====================
-  // RENDERIZAR TABELA
-  // =====================
-  function renderizarTabela(clientes) {
-    const corpo = document.getElementById('corpoTabela');
-    document.getElementById('totalClientes').textContent = clientes.length;
+      // =====================
+      // RENDERIZAR TABELA
+      // =====================
+      function renderizarTabela(clientes) {
+        const corpo = document.getElementById("corpoTabela");
+        document.getElementById("totalClientes").textContent = clientes.length;
 
-    if (clientes.length === 0) {
-      corpo.innerHTML = `
+        if (clientes.length === 0) {
+          corpo.innerHTML = `
         <tr><td colspan="6">
           <div class="empty-state">
             <i class="fa-solid fa-users"></i>
@@ -300,10 +433,12 @@
             </button>
           </div>
         </td></tr>`;
-      return;
-    }
+          return;
+        }
 
-    corpo.innerHTML = clientes.map(c => `
+        corpo.innerHTML = clientes
+          .map(
+            (c) => `
       <tr>
         <td>
           <div class="client-name">
@@ -312,9 +447,9 @@
           </div>
         </td>
         <td>${c.cpf}</td>
-        <td>${c.telefone || '—'}</td>
-        <td>${c.email || '—'}</td>
-        <td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td>
+        <td>${c.telefone || "—"}</td>
+        <td>${c.email || "—"}</td>
+        <td>${new Date(c.criado_em).toLocaleDateString("pt-BR")}</td>
         <td>
           <div class="actions">
             <button class="btn-edit" onclick="abrirEdicao(${c.id})">
@@ -326,172 +461,205 @@
           </div>
         </td>
       </tr>
-    `).join('');
-  }
-
-  // =====================
-  // FILTRO DE BUSCA
-  // =====================
-  function filtrarClientes() {
-    const busca = document.getElementById('busca').value.toLowerCase();
-    const filtrados = todosClientes.filter(c =>
-      c.nome.toLowerCase().includes(busca) ||
-      c.cpf.includes(busca) ||
-      (c.email && c.email.toLowerCase().includes(busca))
-    );
-    renderizarTabela(filtrados);
-  }
-
-  // =====================
-  // MODAL NOVO CLIENTE
-  // =====================
-  function abrirModal() {
-    document.getElementById('clienteId').value    = '';
-    document.getElementById('clienteNome').value  = '';
-    document.getElementById('clienteCpf').value   = '';
-    document.getElementById('clienteTelefone').value = '';
-    document.getElementById('clienteEmail').value = '';
-    document.getElementById('modalTitulo').textContent    = 'Novo Cliente';
-    document.getElementById('modalSubtitulo').textContent = 'Preencha os dados do cliente abaixo';
-    document.getElementById('btnSalvar').innerHTML = '<i class="fa-solid fa-check"></i> Salvar Cliente';
-    document.getElementById('modalOverlay').classList.add('open');
-    document.getElementById('clienteNome').focus();
-  }
-
-  // =====================
-  // MODAL EDITAR CLIENTE
-  // =====================
-  function abrirEdicao(id) {
-    const cliente = todosClientes.find(c => c.id === id);
-    if (!cliente) return;
-
-    document.getElementById('clienteId').value       = cliente.id;
-    document.getElementById('clienteNome').value     = cliente.nome;
-    document.getElementById('clienteCpf').value      = cliente.cpf;
-    document.getElementById('clienteTelefone').value = cliente.telefone || '';
-    document.getElementById('clienteEmail').value    = cliente.email || '';
-    document.getElementById('modalTitulo').textContent    = 'Editar Cliente';
-    document.getElementById('modalSubtitulo').textContent = 'Atualize os dados do cliente';
-    document.getElementById('btnSalvar').innerHTML = '<i class="fa-solid fa-pen"></i> Salvar Alterações';
-    document.getElementById('modalOverlay').classList.add('open');
-    document.getElementById('clienteNome').focus();
-  }
-
-  function fecharModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-  }
-
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalOverlay')) fecharModal();
-  });
-
-  // =====================
-  // SALVAR (CRIAR OU EDITAR)
-  // =====================
-  async function salvarCliente() {
-    const id       = document.getElementById('clienteId').value;
-    const nome     = document.getElementById('clienteNome').value.trim();
-    const cpf      = document.getElementById('clienteCpf').value.trim();
-    const telefone = document.getElementById('clienteTelefone').value.trim();
-    const email    = document.getElementById('clienteEmail').value.trim();
-
-    if (!nome || !cpf) {
-      showToast('Nome e CPF são obrigatórios.', 'error');
-      return;
-    }
-
-    const btn = document.getElementById('btnSalvar');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
-
-    try {
-      const url    = id ? `https://pgcred-production.up.railway.app/clientes/${id}` : 'https://pgcred-production.up.railway.app/clientes';
-      const method = id ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ nome, cpf, telefone, email })
-      });
-
-      const dados = await res.json();
-
-      if (res.ok) {
-        fecharModal();
-        showToast(id ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!');
-        carregarClientes();
-      } else {
-        showToast(dados.mensagem || 'Erro ao salvar cliente.', 'error');
+    `,
+          )
+          .join("");
       }
-    } catch (e) {
-      showToast('Erro ao conectar com o servidor.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Cliente';
-    }
-  }
 
-  // =====================
-  // CONFIRMAR EXCLUSÃO
-  // =====================
-  function confirmarDelete(id) {
-    clienteParaDeletar = id;
-    document.getElementById('confirmOverlay').classList.add('open');
-  }
+      // =====================
+      // FILTRO DE BUSCA
+      // =====================
+      function filtrarClientes() {
+        const busca = document.getElementById("busca").value.toLowerCase();
+        const filtrados = todosClientes.filter(
+          (c) =>
+            c.nome.toLowerCase().includes(busca) ||
+            c.cpf.includes(busca) ||
+            (c.email && c.email.toLowerCase().includes(busca)),
+        );
+        renderizarTabela(filtrados);
+      }
 
-  function fecharConfirm() {
-    clienteParaDeletar = null;
-    document.getElementById('confirmOverlay').classList.remove('open');
-  }
+      // =====================
+      // MODAL NOVO CLIENTE
+      // =====================
+      function abrirModal() {
+        document.getElementById("clienteId").value = "";
+        document.getElementById("clienteNome").value = "";
+        document.getElementById("clienteCpf").value = "";
+        document.getElementById("clienteTelefone").value = "";
+        document.getElementById("clienteEmail").value = "";
+        document.getElementById("modalTitulo").textContent = "Novo Cliente";
+        document.getElementById("modalSubtitulo").textContent =
+          "Preencha os dados do cliente abaixo";
+        document.getElementById("btnSalvar").innerHTML =
+          '<i class="fa-solid fa-check"></i> Salvar Cliente';
+        document.getElementById("modalOverlay").classList.add("open");
+        document.getElementById("clienteNome").focus();
+      }
 
-  document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
-    if (!clienteParaDeletar) return;
-    try {
-      await fetch(`https://pgcred-production.up.railway.app/clientes/${clienteParaDeletar}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': 'Bearer ' + token }
+      // =====================
+      // MODAL EDITAR CLIENTE
+      // =====================
+      function abrirEdicao(id) {
+        const cliente = todosClientes.find((c) => c.id === id);
+        if (!cliente) return;
+
+        document.getElementById("clienteId").value = cliente.id;
+        document.getElementById("clienteNome").value = cliente.nome;
+        document.getElementById("clienteCpf").value = cliente.cpf;
+        document.getElementById("clienteTelefone").value =
+          cliente.telefone || "";
+        document.getElementById("clienteEmail").value = cliente.email || "";
+        document.getElementById("modalTitulo").textContent = "Editar Cliente";
+        document.getElementById("modalSubtitulo").textContent =
+          "Atualize os dados do cliente";
+        document.getElementById("btnSalvar").innerHTML =
+          '<i class="fa-solid fa-pen"></i> Salvar Alterações';
+        document.getElementById("modalOverlay").classList.add("open");
+        document.getElementById("clienteNome").focus();
+      }
+
+      function fecharModal() {
+        document.getElementById("modalOverlay").classList.remove("open");
+      }
+
+      document.getElementById("modalOverlay").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("modalOverlay")) fecharModal();
       });
-      fecharConfirm();
-      showToast('Cliente removido com sucesso!');
+
+      // =====================
+      // SALVAR (CRIAR OU EDITAR)
+      // =====================
+      async function salvarCliente() {
+        const id = document.getElementById("clienteId").value;
+        const nome = document.getElementById("clienteNome").value.trim();
+        const cpf = document.getElementById("clienteCpf").value.trim();
+        const telefone = document
+          .getElementById("clienteTelefone")
+          .value.trim();
+        const email = document.getElementById("clienteEmail").value.trim();
+
+        if (!nome || !cpf) {
+          showToast("Nome e CPF são obrigatórios.", "error");
+          return;
+        }
+
+        const btn = document.getElementById("btnSalvar");
+        btn.disabled = true;
+        btn.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+        try {
+          const url = id
+            ? `https://pgcred-production.up.railway.app/clientes/${id}`
+            : "https://pgcred-production.up.railway.app/clientes";
+          const method = id ? "PUT" : "POST";
+
+          const res = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({ nome, cpf, telefone, email }),
+          });
+
+          const dados = await res.json();
+
+          if (res.ok) {
+            fecharModal();
+            showToast(
+              id
+                ? "Cliente atualizado com sucesso!"
+                : "Cliente cadastrado com sucesso!",
+            );
+            carregarClientes();
+          } else {
+            showToast(dados.mensagem || "Erro ao salvar cliente.", "error");
+          }
+        } catch (e) {
+          showToast("Erro ao conectar com o servidor.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvar Cliente';
+        }
+      }
+
+      // =====================
+      // CONFIRMAR EXCLUSÃO
+      // =====================
+      function confirmarDelete(id) {
+        clienteParaDeletar = id;
+        document.getElementById("confirmOverlay").classList.add("open");
+      }
+
+      function fecharConfirm() {
+        clienteParaDeletar = null;
+        document.getElementById("confirmOverlay").classList.remove("open");
+      }
+
+      document
+        .getElementById("btnConfirmDelete")
+        .addEventListener("click", async () => {
+          if (!clienteParaDeletar) return;
+          try {
+            await fetch(
+              `https://pgcred-production.up.railway.app/clientes/${clienteParaDeletar}`,
+              {
+                method: "DELETE",
+                headers: { Authorization: "Bearer " + token },
+              },
+            );
+            fecharConfirm();
+            showToast("Cliente removido com sucesso!");
+            carregarClientes();
+          } catch (e) {
+            showToast("Erro ao remover cliente.", "error");
+          }
+        });
+
+      // =====================
+      // MÁSCARAS
+      // =====================
+      function mascaraCpf(input) {
+        let v = input.value.replace(/\D/g, "").substring(0, 11);
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        input.value = v;
+      }
+
+      function mascaraTelefone(input) {
+        let v = input.value.replace(/\D/g, "").substring(0, 11);
+        v = v.replace(/(\d{2})(\d)/, "($1) $2");
+        v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        input.value = v;
+      }
+
+      // =====================
+      // LOGOUT
+      // =====================
+      function logout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuarioEmail");
+        window.location.href = "index.html";
+      }
+
+      // INIT
+      carregarPerfil();
       carregarClientes();
-    } catch (e) {
-      showToast('Erro ao remover cliente.', 'error');
-    }
-  });
+    </script>
 
-  // =====================
-  // MÁSCARAS
-  // =====================
-  function mascaraCpf(input) {
-    let v = input.value.replace(/\D/g, '').substring(0, 11);
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    input.value = v;
+    <script>
+  const menuToggleDash = document.getElementById('menuToggleDash');
+  const sidebarEl = document.querySelector('.sidebar');
+  const sidebarOverlayEl = document.getElementById('sidebarOverlay');
+  if (menuToggleDash) {
+    menuToggleDash.addEventListener('click', () => { sidebarEl.classList.toggle('open'); sidebarOverlayEl.classList.toggle('show'); });
+    sidebarOverlayEl.addEventListener('click', () => { sidebarEl.classList.remove('open'); sidebarOverlayEl.classList.remove('show'); });
   }
-
-  function mascaraTelefone(input) {
-    let v = input.value.replace(/\D/g, '').substring(0, 11);
-    v = v.replace(/(\d{2})(\d)/, '($1) $2');
-    v = v.replace(/(\d{5})(\d)/, '$1-$2');
-    input.value = v;
-  }
-
-  // =====================
-  // LOGOUT
-  // =====================
-  function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuarioEmail');
-    window.location.href = 'index.html';
-  }
-
-  // INIT
-  carregarPerfil();
-  carregarClientes();
+  
 </script>
-
-</body>
-
-
+  </body>
 </html>
